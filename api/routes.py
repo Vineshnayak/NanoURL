@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 import models
 import schemas
 from database import get_db
+from core.base62 import encode
 
 router = APIRouter(prefix="/api/v1", tags=["urls"])
 
@@ -14,8 +15,9 @@ def create_short_url(url: schemas.URLCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_url)
     
-    # Temporary: set short_code to stringified ID just to pass schema validation
-    # This will be replaced with Base62 encoding in the next phase
-    db_url.short_code = str(db_url.id)
+    # Generate short_code using Base62 encoding of the ID
+    db_url.short_code = encode(db_url.id)
+    db.commit()
+    db.refresh(db_url)
     
     return db_url
